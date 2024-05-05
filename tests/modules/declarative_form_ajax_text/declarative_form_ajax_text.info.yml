@@ -1,0 +1,5 @@
+name: 'Declarative Form Ajax Text'
+type: module
+description: 'TODO: Description of module'
+package: Testing
+core_version_requirement: '^10'

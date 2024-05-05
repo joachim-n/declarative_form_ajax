@@ -1,0 +1,6 @@
+name: 'Declarative form AJAX'
+type: module
+description: 'TODO: Description of module'
+core_version_requirement: '^10'
+dependencies:
+  - declarative_form_ajax:declarative_form_ajax
