@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\declarative_form_ajax_text\Form;
+namespace Drupal\declarative_form_ajax_test\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -14,7 +14,7 @@ class DeclarativeAjaxTestForm extends FormBase {
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'declarative_form_ajax_text_declarative_ajax_test_form';
+    return 'declarative_form_ajax_test_declarative_ajax_test_form';
   }
 
   /**

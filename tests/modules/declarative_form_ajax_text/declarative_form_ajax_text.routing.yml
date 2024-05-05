@@ -1,7 +1,0 @@
-declarative_form_ajax_text.test.declarative_ajax_form:
-  path: /test/declarative-ajax-form
-  defaults:
-    _title: 'Test form'
-    _form: \Drupal\declarative_form_ajax_text\Form\DeclarativeAjaxTestForm
-  requirements:
-    _access: 'TRUE'

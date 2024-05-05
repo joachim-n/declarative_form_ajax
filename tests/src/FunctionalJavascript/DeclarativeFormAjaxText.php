@@ -20,7 +20,7 @@ class DeclarativeFormAjaxText extends WebDriverTestBase {
     'system',
     'user',
     'declarative_form_ajax',
-    'declarative_form_ajax_text',
+    'declarative_form_ajax_test',
   ];
 
   /**
