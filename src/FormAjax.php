@@ -8,8 +8,21 @@ use Drupal\Core\Ajax\PrependCommand;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\HttpFoundation\Request;
 
+/**
+ * Provides the form AJAX handler for declarative AJAX.
+ */
 class FormAjax {
 
+  /**
+   * Form AJAX handler.
+   *
+   * @param array &$form
+   *   The form array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request object.
+   */
   public static function ajaxCallback(&$form, FormStateInterface &$form_state, Request $request) {
     $triggering_element = $form_state->getTriggeringElement();
     $triggering_element_parents = $triggering_element['#array_parents'];
