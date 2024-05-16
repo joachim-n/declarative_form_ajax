@@ -31,12 +31,12 @@ class FormAjax {
     // update on the triggering element.
     $collected_elements = [];
     Element::walkChildrenRecursive($form, function($element) use ($triggering_element_parents, &$collected_elements) {
-      if (!isset($element['#updates_on'])) {
+      if (!isset($element['#ajax']['updated_by'])) {
         return;
       }
 
-      foreach ($element['#updates_on'] as $updates_on) {
-        if ($updates_on == $triggering_element_parents) {
+      foreach ($element['#ajax']['updated_by'] as $updated_by) {
+        if ($updated_by == $triggering_element_parents) {
           $collected_elements[] = $element;
         }
       }

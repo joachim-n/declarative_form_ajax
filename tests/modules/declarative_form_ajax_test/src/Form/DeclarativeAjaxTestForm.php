@@ -26,15 +26,17 @@ class DeclarativeAjaxTestForm extends FormBase {
       '#title' => 'ticky',
       '#ajax' => [
         'callback' => '\Drupal\declarative_form_ajax\FormAjax::ajaxCallback',
-        // 'wrapper' => $container_html_id,
       ],
     ];
 
+    // Container that will be updated by the 'clickme' checkbox.
     $form['replace-container'] = [
       '#type' => 'container',
       '#title' => 'container replaces! -- ' . time(),
-      '#updates_on' => [
-        ['clickme'],
+      '#ajax' => [
+        'updated_by' => [
+          ['clickme'],
+        ],
       ],
     ];
     $form['replace-container']['inner-a'] = [
@@ -50,13 +52,15 @@ class DeclarativeAjaxTestForm extends FormBase {
       '#markup' => 'this does not change',
     ];
 
-
+    // Details that will be updated by the 'clickme' checkbox.
     $form['replace-details'] = [
       '#type' => 'details',
       '#title' => 'details replaces! -- ' . time(),
       '#open' => TRUE,
-      '#updates_on' => [
-        ['clickme'],
+      '#ajax' => [
+        'updated_by' => [
+          ['clickme'],
+        ],
       ],
     ];
     $form['replace-details']['inner-a'] = [
