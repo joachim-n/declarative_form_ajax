@@ -52,16 +52,14 @@ class FormAjax {
           unset($triggering_element['#ajax_processed']);
           $triggering_element = RenderElement::processAjaxForm($triggering_element, $form_state, $form);
 
+          // During an AJAX request, the triggering element is set on the form
+          // state earlier than the #after_build process, and so will not have
+          // our callback. Therefore, we need to set it again.
           if ($current_triggering_element =& $form_state->getTriggeringElement()) {
             if ($current_triggering_element['#array_parents'] == $triggering_element['#array_parents']) {
               $current_triggering_element['#ajax']['callback'] = static::class . '::ajaxCallback';
-              // $form_state->setTriggeringElement($triggering_element);
             }
           }
-
-          // $triggering_element = [
-          //   '#markup' => 'cake',
-          // ];
         }
 
 
