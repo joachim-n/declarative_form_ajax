@@ -2,16 +2,81 @@
 
 namespace Drupal\declarative_form_ajax;
 
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\InsertCommand;
 use Drupal\Core\Ajax\PrependCommand;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element\RenderElement;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Provides the form AJAX handler for declarative AJAX.
  */
 class FormAjax {
+
+  /**
+   * After build callback to set up declarative AJAX.
+   *
+   * This should be set as an '#after_build' callback on the whole form.
+   *
+   * This walks the entire form, looking for elements with
+   * ['#ajax']['updated_by'] set. It then sets up the targetted elements to be
+   * AJAX triggers.
+   *
+   * This needs to do a few hacks:
+   *  - AJAX has already been processed by this point, so we need to forcibly
+   *    process it again.
+   *  - In an AJAX request, the form build process calls setTriggeringElement()
+   *    too early, and does not set it by reference, and so we need to update
+   *    the form state's copy so it has our callback.
+   */
+  public static function ajaxAfterBuild($form, FormStateInterface $form_state) {
+    // $form = $form_state->getCompleteForm();
+
+    $ajax_triggering_elements = [];
+    Element::walkChildrenRecursive($form, function($walk_element) use (&$form, $form_state, &$ajax_triggering_elements) {
+      if (!isset($walk_element['#ajax']['updated_by'])) {
+        return;
+      }
+
+      foreach ($walk_element['#ajax']['updated_by'] as $address) {
+        $triggering_element =& NestedArray::getValue($form, $address);
+
+        // dsm($triggering_element['#ajax_processed']);
+        if (($triggering_element['#ajax_processed']) == FALSE) {
+          $triggering_element['#ajax']['callback'] = static::class . '::ajaxCallback';
+
+          // The element was already processed for AJAX but there were no AJAX
+          // settings at the time, so we need to send it through again.
+          unset($triggering_element['#ajax_processed']);
+          $triggering_element = RenderElement::processAjaxForm($triggering_element, $form_state, $form);
+
+          if ($current_triggering_element =& $form_state->getTriggeringElement()) {
+            if ($current_triggering_element['#array_parents'] == $triggering_element['#array_parents']) {
+              $current_triggering_element['#ajax']['callback'] = static::class . '::ajaxCallback';
+              // $form_state->setTriggeringElement($triggering_element);
+            }
+          }
+
+          // $triggering_element = [
+          //   '#markup' => 'cake',
+          // ];
+        }
+
+
+        // TODO: what to do if one already set?
+      // '#ajax' => [
+      //   'callback' => '\Drupal\declarative_form_ajax\FormAjax::ajaxCallback',
+      // ],
+
+        // $ajax_triggering_elements[] = $address;
+      }
+    });
+    // dsm($form);
+
+    return $form;
+  }
 
   /**
    * Form AJAX handler.
@@ -23,7 +88,7 @@ class FormAjax {
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
    */
-  public static function ajaxCallback(&$form, FormStateInterface &$form_state, Request $request) {
+  public static function ajaxCallback(&$form, FormStateInterface $form_state, Request $request) {
     $triggering_element = $form_state->getTriggeringElement();
     $triggering_element_parents = $triggering_element['#array_parents'];
 

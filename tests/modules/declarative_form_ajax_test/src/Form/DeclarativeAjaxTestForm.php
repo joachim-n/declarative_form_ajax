@@ -4,6 +4,7 @@ namespace Drupal\declarative_form_ajax_test\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\declarative_form_ajax\FormAjax;
 
 /**
  * TODO: class docs.
@@ -24,9 +25,9 @@ class DeclarativeAjaxTestForm extends FormBase {
     $form['clickme'] = [
       '#type' => 'checkbox',
       '#title' => 'ticky',
-      '#ajax' => [
-        'callback' => '\Drupal\declarative_form_ajax\FormAjax::ajaxCallback',
-      ],
+      // '#ajax' => [
+      //   'callback' => '\Drupal\declarative_form_ajax\FormAjax::ajaxCallback',
+      // ],
     ];
 
     // Container that will be updated by the 'clickme' checkbox.
@@ -71,6 +72,8 @@ class DeclarativeAjaxTestForm extends FormBase {
       '#type' => 'textfield',
       '#title' => 'inner B replaces! -- ' . time(),
     ];
+
+    $form['#after_build'][] = FormAjax::class .  '::ajaxAfterBuild';
 
     return $form;
   }
