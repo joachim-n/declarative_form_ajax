@@ -41,35 +41,43 @@ class FormAjax {
       }
 
       foreach ($walk_element['#ajax']['updated_by'] as $address) {
-        $triggering_element =& NestedArray::getValue($form, $address);
+        // Use a key based on the element address so we only process each
+        // element once. This is important so we retain any existing AJAX
+        // callback on an element.
+        $ajax_triggering_elements[implode(':', $address)] = $address;
+      }
+    });
 
-        // dsm($triggering_element);
-        if (!isset($triggering_element['#ajax_processed'])) {
-          // TODO: throw an exception, this triggering element won't work with
-          // AJAX!
-        }
-        elseif (($triggering_element['#ajax_processed']) == FALSE) {
-          $triggering_element['#ajax']['callback'] = static::class . '::ajaxCallback';
+    foreach ($ajax_triggering_elements as $address) {
+      $triggering_element =& NestedArray::getValue($form, $address);
 
-          // The element was already processed for AJAX but there were no AJAX
-          // settings at the time, so we need to send it through again.
-          unset($triggering_element['#ajax_processed']);
-          $triggering_element = RenderElement::processAjaxForm($triggering_element, $form_state, $form);
+      // dsm($triggering_element);
+      if (!isset($triggering_element['#ajax_processed'])) {
+        // TODO: throw an exception, this triggering element won't work with
+        // AJAX!
+      }
+      elseif (($triggering_element['#ajax_processed']) == FALSE) {
+        $triggering_element['#ajax']['callback'] = static::class . '::ajaxCallback';
 
-          // During an AJAX request, the triggering element is set on the form
-          // state earlier than the #after_build process, and so will not have
-          // our callback. Therefore, we need to set it again.
-          if ($current_triggering_element =& $form_state->getTriggeringElement()) {
-            if ($current_triggering_element['#array_parents'] == $triggering_element['#array_parents']) {
-              $current_triggering_element['#ajax']['callback'] = static::class . '::ajaxCallback';
-            }
+        // The element was already processed for AJAX but there were no AJAX
+        // settings at the time, so we need to send it through again.
+        unset($triggering_element['#ajax_processed']);
+        $triggering_element = RenderElement::processAjaxForm($triggering_element, $form_state, $form);
+
+        // During an AJAX request, the triggering element is set on the form
+        // state earlier than the #after_build process, and so will not have
+        // our callback. Therefore, we need to set it again.
+        if ($current_triggering_element =& $form_state->getTriggeringElement()) {
+          if ($current_triggering_element['#array_parents'] == $triggering_element['#array_parents']) {
+            $current_triggering_element['#ajax']['callback'] = static::class . '::ajaxCallback';
           }
         }
-        elseif (($triggering_element['#ajax_processed']) == TRUE) {
-          $triggering_element['#ajax']['prior_callback'] = $triggering_element['#ajax']['callback'];
+      }
+      elseif (($triggering_element['#ajax_processed']) == TRUE) {
+        $triggering_element['#ajax']['prior_callback'] = $triggering_element['#ajax']['callback'];
 
-          $triggering_element['#ajax']['callback'] = static::class . '::ajaxCallback';
-        }
+        $triggering_element['#ajax']['callback'] = static::class . '::ajaxCallback';
+      }
 
 
         // TODO: what to do if one already set?
@@ -78,8 +86,8 @@ class FormAjax {
       // ],
 
         // $ajax_triggering_elements[] = $address;
-      }
-    });
+    }
+
     dsm($form);
 
     return $form;
