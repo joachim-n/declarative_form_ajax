@@ -43,8 +43,12 @@ class FormAjax {
       foreach ($walk_element['#ajax']['updated_by'] as $address) {
         $triggering_element =& NestedArray::getValue($form, $address);
 
-        // dsm($triggering_element['#ajax_processed']);
-        if (($triggering_element['#ajax_processed']) == FALSE) {
+        // dsm($triggering_element);
+        if (!isset($triggering_element['#ajax_processed'])) {
+          // TODO: throw an exception, this triggering element won't work with
+          // AJAX!
+        }
+        elseif (($triggering_element['#ajax_processed']) == FALSE) {
           $triggering_element['#ajax']['callback'] = static::class . '::ajaxCallback';
 
           // The element was already processed for AJAX but there were no AJAX
@@ -61,6 +65,11 @@ class FormAjax {
             }
           }
         }
+        elseif (($triggering_element['#ajax_processed']) == TRUE) {
+          $triggering_element['#ajax']['prior_callback'] = $triggering_element['#ajax']['callback'];
+
+          $triggering_element['#ajax']['callback'] = static::class . '::ajaxCallback';
+        }
 
 
         // TODO: what to do if one already set?
@@ -71,7 +80,7 @@ class FormAjax {
         // $ajax_triggering_elements[] = $address;
       }
     });
-    // dsm($form);
+    dsm($form);
 
     return $form;
   }
