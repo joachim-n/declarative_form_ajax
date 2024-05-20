@@ -11,7 +11,7 @@ use Drupal\Core\Render\Element\RenderElement;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Provides the form AJAX handler for declarative AJAX.
+ * Provides the form AJAX handlers for declarative AJAX.
  */
 class FormAjax {
 
@@ -21,20 +21,22 @@ class FormAjax {
    * This should be set as an '#after_build' callback on the whole form.
    *
    * This walks the entire form, looking for elements with
-   * ['#ajax']['updated_by'] set. It then sets up the targetted elements to be
+   * ['#ajax']['updated_by'] set. It then sets up the targeted elements to be
    * AJAX triggers.
    *
-   * This needs to do a few hacks:
+   * This needs to do a few hacks because it's operating outside of core
+   * FormAPI:
    *  - AJAX has already been processed by this point, so we need to forcibly
    *    process it again.
    *  - In an AJAX request, the form build process calls setTriggeringElement()
-   *    too early, and does not set it by reference, and so we need to update
-   *    the form state's copy so it has our callback.
+   *    before #after_build callbacks are executed, and does not set it by
+   *    reference, and so we need to update the form state's copy so it has our
+   *    callback.
    */
   public static function ajaxAfterBuild($form, FormStateInterface $form_state) {
-    // $form = $form_state->getCompleteForm();
-
     $ajax_triggering_elements = [];
+
+    // Find all elements which are the target of an AJAX updating element.
     Element::walkChildrenRecursive($form, function($walk_element) use (&$form, $form_state, &$ajax_triggering_elements) {
       if (!isset($walk_element['#ajax']['updated_by'])) {
         return;
@@ -48,10 +50,10 @@ class FormAjax {
       }
     });
 
+    // Set up each triggering element.
     foreach ($ajax_triggering_elements as $address) {
       $triggering_element =& NestedArray::getValue($form, $address);
 
-      // dsm($triggering_element);
       if (!isset($triggering_element['#ajax_processed'])) {
         // TODO: throw an exception, this triggering element won't work with
         // AJAX!
@@ -59,8 +61,9 @@ class FormAjax {
       elseif (($triggering_element['#ajax_processed']) == FALSE) {
         $triggering_element['#ajax']['callback'] = static::class . '::ajaxCallback';
 
-        // The element was already processed for AJAX but there were no AJAX
-        // settings at the time, so we need to send it through again.
+        // The element was already processed for AJAX by
+        // RenderElement::processAjaxForm() but there were no AJAX settings at
+        // the time, so we need to send it through again.
         unset($triggering_element['#ajax_processed']);
         $triggering_element = RenderElement::processAjaxForm($triggering_element, $form_state, $form);
 
@@ -74,6 +77,8 @@ class FormAjax {
         }
       }
       elseif (($triggering_element['#ajax_processed']) == TRUE) {
+        // The element has its own AJAX callback, which we need to register so
+        // that we call it from our own callback.
         $triggering_element['#ajax']['prior_callback'] = $triggering_element['#ajax']['callback'];
 
         $triggering_element['#ajax']['callback'] = static::class . '::ajaxCallback';
@@ -89,23 +94,19 @@ class FormAjax {
           }
         }
       }
-
-
-        // TODO: what to do if one already set?
-      // '#ajax' => [
-      //   'callback' => '\Drupal\declarative_form_ajax\FormAjax::ajaxCallback',
-      // ],
-
-        // $ajax_triggering_elements[] = $address;
     }
-
-    // dsm($form);
 
     return $form;
   }
 
   /**
    * Form AJAX handler.
+   *
+   * This is set as an AJAX callback on AJAX elements by
+   * static::ajaxAfterBuild().
+   *
+   * If an AJAX element already had an AJAX callback, this takes care of calling
+   * it and integrating the result from that into our response.
    *
    * @param array &$form
    *   The form array.
@@ -119,6 +120,8 @@ class FormAjax {
     $triggering_element_parents = $triggering_element['#array_parents'];
 
     // Call a prior callback that we've replaced.
+    // We take its response and use that, as it's not possible to copy AJAX
+    // commands from one AjaxResponse to another.
     if (isset($triggering_element['#ajax']['prior_callback'])) {
       $prior_callback = $triggering_element['#ajax']['prior_callback'];
       $prior_callback = $form_state->prepareCallback($prior_callback);
@@ -144,7 +147,6 @@ class FormAjax {
     // response.
     $collected_elements = [];
 
-
     // Walk the entire form recursively, looking for elements which say they
     // update on the triggering element.
     Element::walkChildrenRecursive($form, function($element) use ($triggering_element_parents, &$collected_elements) {
@@ -158,16 +160,11 @@ class FormAjax {
         }
       }
     });
-    // dsm($collected_elements);
-    // dsm('!');
 
-
+    // Render each element that should update and add it to the response.
     foreach ($collected_elements as $updated_element) {
-      // return $updated_element;
-
-      // If the
-      // element is part of the group (#group is set on it) it won't be rendered
-      // unless we remove #group from it. This is caused by
+      // If the element is part of the group (#group is set on it) it won't be
+      // rendered unless we remove #group from it. This is caused by
       // \Drupal\Core\Render\Element\RenderElement::preRenderGroup(), which
       // prevents all members of groups from being rendered directly.
       if (!empty($updated_element['#group'])) {
@@ -215,8 +212,6 @@ class FormAjax {
       // TODO! doesn't work!
       $response->addCommand(new PrependCommand(NULL, $output));
     }
-
-    // $response->addCommand(new InsertCommand('#block-olivero-page-title', '<p>POOP</p>'));
 
     return $response;
   }
