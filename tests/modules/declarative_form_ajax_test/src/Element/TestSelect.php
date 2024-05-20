@@ -10,8 +10,6 @@ use Drupal\Core\Render\Element\RenderElement;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * TODO: class docs.
- *
  * Test custom form element which has its own built-in AJAX update.
  *
  * @RenderElement("declarative_form_ajax_test_select")
@@ -31,6 +29,9 @@ class TestSelect extends RenderElement {
     ];
   }
 
+  /**
+   * Process callback.
+   */
   public static function processPlugin(&$element, FormStateInterface $form_state, &$complete_form) {
     $element['#tree'] = TRUE;
 

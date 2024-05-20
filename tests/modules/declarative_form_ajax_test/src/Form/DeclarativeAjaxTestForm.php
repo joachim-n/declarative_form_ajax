@@ -7,7 +7,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\declarative_form_ajax\FormAjax;
 
 /**
- * TODO: class docs.
+ * Example form for declarative AJAX.
  */
 class DeclarativeAjaxTestForm extends FormBase {
 
@@ -25,9 +25,6 @@ class DeclarativeAjaxTestForm extends FormBase {
     $form['clickme'] = [
       '#type' => 'checkbox',
       '#title' => 'ticky',
-      // '#ajax' => [
-      //   'callback' => '\Drupal\declarative_form_ajax\FormAjax::ajaxCallback',
-      // ],
     ];
 
     // Container that will be updated by the 'clickme' checkbox.

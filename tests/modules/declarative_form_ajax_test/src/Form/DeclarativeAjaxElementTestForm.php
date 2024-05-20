@@ -7,7 +7,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\declarative_form_ajax\FormAjax;
 
 /**
- * TODO: class docs. with an element with built-in ajax.
+ * Example form for declarative AJAX with an element with existing AJAX.
  */
 class DeclarativeAjaxElementTestForm extends FormBase {
 
@@ -23,6 +23,7 @@ class DeclarativeAjaxElementTestForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $form['clickme'] = [
+      // This form element already has its own AJAX callback.
       '#type' => 'declarative_form_ajax_test_select',
       '#title' => 'ticky',
     ];
