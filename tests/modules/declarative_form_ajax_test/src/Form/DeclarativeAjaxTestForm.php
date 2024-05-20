@@ -70,6 +70,8 @@ class DeclarativeAjaxTestForm extends FormBase {
       '#title' => 'inner B replaces! -- ' . time(),
     ];
 
+    // Set this after build callback on the whole form to set up the AJAX
+    // behaviours.
     $form['#after_build'][] = FormAjax::class .  '::ajaxAfterBuild';
 
     return $form;

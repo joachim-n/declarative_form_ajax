@@ -28,7 +28,7 @@ class DeclarativeAjaxElementTestForm extends FormBase {
       '#title' => 'ticky',
     ];
 
-    // Container that will be updated by the 'clickme' checkbox.
+    // Container that will be updated by the 'clickme' select element.
     $form['replace-container'] = [
       '#type' => 'container',
       '#title' => 'container replaces! -- ' . time(),
@@ -71,15 +71,12 @@ class DeclarativeAjaxElementTestForm extends FormBase {
       '#title' => 'inner B replaces! -- ' . time(),
     ];
 
+    // Set this after build callback on the whole form to set up the AJAX
+    // behaviours.
     $form['#after_build'][] = FormAjax::class .  '::ajaxAfterBuild';
 
     return $form;
   }
-
-  public static function priorAjaxCallback(&$form, FormStateInterface $form_state) {
-    return $form['clickme_prior_dependency'];
-  }
-
 
   /**
    * {@inheritdoc}
