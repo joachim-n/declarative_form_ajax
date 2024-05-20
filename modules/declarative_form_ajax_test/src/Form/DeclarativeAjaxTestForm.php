@@ -72,6 +72,7 @@ class DeclarativeAjaxTestForm extends FormBase {
 
     // Set this after build callback on the whole form to set up the AJAX
     // behaviours.
+    // In core, this step would not be needed.
     $form['#after_build'][] = FormAjax::class .  '::ajaxAfterBuild';
 
     return $form;

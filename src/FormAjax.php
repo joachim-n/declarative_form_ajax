@@ -32,6 +32,8 @@ class FormAjax {
    *    before #after_build callbacks are executed, and does not set it by
    *    reference, and so we need to update the form state's copy so it has our
    *    callback.
+   *
+   * In core, this would not be needed as this could be done within FormBuilder.
    */
   public static function ajaxAfterBuild($form, FormStateInterface $form_state) {
     $ajax_triggering_elements = [];
