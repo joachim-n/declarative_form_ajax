@@ -1,5 +1,5 @@
-name: 'Declarative Form Ajax Test'
+name: 'Declarative Form Ajax Demo'
 type: module
-description: 'TODO: Description of module'
+description: 'Test / Demo module for Declarative Ajax Forms'
 package: Testing
 core_version_requirement: '^10'
