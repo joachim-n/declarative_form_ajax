@@ -77,6 +77,17 @@ class FormAjax {
         $triggering_element['#ajax']['prior_callback'] = $triggering_element['#ajax']['callback'];
 
         $triggering_element['#ajax']['callback'] = static::class . '::ajaxCallback';
+
+        // During an AJAX request, the triggering element is set on the form
+        // state earlier than the #after_build process, and so will not have
+        // our callback. Therefore, we need to set it again.
+        if ($current_triggering_element =& $form_state->getTriggeringElement()) {
+          if ($current_triggering_element['#array_parents'] == $triggering_element['#array_parents']) {
+            $current_triggering_element['#ajax']['prior_callback'] = $current_triggering_element['#ajax']['callback'];
+
+            $current_triggering_element['#ajax']['callback'] = static::class . '::ajaxCallback';
+          }
+        }
       }
 
 
@@ -88,7 +99,7 @@ class FormAjax {
         // $ajax_triggering_elements[] = $address;
     }
 
-    dsm($form);
+    // dsm($form);
 
     return $form;
   }
@@ -107,9 +118,35 @@ class FormAjax {
     $triggering_element = $form_state->getTriggeringElement();
     $triggering_element_parents = $triggering_element['#array_parents'];
 
+    // Call a prior callback that we've replaced.
+    if (isset($triggering_element['#ajax']['prior_callback'])) {
+      $prior_callback = $triggering_element['#ajax']['prior_callback'];
+      $prior_callback = $form_state->prepareCallback($prior_callback);
+
+      // Make a copy of the form array, as the callback apparently messes with it.
+      $form_copy = $form;
+      $prior_callback_result = call_user_func_array($prior_callback, [&$form_copy, &$form_state, $request]);
+
+      if ($prior_callback_result instanceof AjaxResponse) {
+        $response = $prior_callback_result;
+      }
+      else {
+        $route_match = \Drupal::routeMatch();
+
+        $response = \Drupal::service('main_content_renderer.ajax')->renderResponse($prior_callback_result, $request, $route_match);
+      }
+    }
+    else {
+      $response = new AjaxResponse();
+    }
+
+    // Elements from the form that should be rendered and returned in the
+    // response.
+    $collected_elements = [];
+
+
     // Walk the entire form recursively, looking for elements which say they
     // update on the triggering element.
-    $collected_elements = [];
     Element::walkChildrenRecursive($form, function($element) use ($triggering_element_parents, &$collected_elements) {
       if (!isset($element['#ajax']['updated_by'])) {
         return;
@@ -124,7 +161,6 @@ class FormAjax {
     // dsm($collected_elements);
     // dsm('!');
 
-    $response = new AjaxResponse();
 
     foreach ($collected_elements as $updated_element) {
       // return $updated_element;
