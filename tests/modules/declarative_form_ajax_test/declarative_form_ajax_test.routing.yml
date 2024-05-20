@@ -9,7 +9,7 @@ declarative_form_ajax_test.declarative_ajax_form:
 declarative_form_ajax_test.declarative_ajax_element_form:
   path: /test/declarative-ajax-element-form
   defaults:
-    _title: 'Test form'
+    _title: 'Test form with AJAX element'
     _form: \Drupal\declarative_form_ajax_test\Form\DeclarativeAjaxElementTestForm
   requirements:
     _access: 'TRUE'
